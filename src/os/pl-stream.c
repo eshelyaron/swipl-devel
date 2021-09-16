@@ -3797,7 +3797,7 @@ Sopenmem(char **bufp, size_t *sizep, const char *mode)
     }
   }
 
-  return Snew(&fd, flags, &Sfilefunctions);
+  return Snew((void *)fd, flags, &Sfilefunctions);
 }
 #else /* ifndef HAVE_MEMFD_CREATE */
 { memfile *mf = malloc(sizeof(memfile));
