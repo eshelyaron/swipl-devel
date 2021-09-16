@@ -3752,6 +3752,7 @@ Sopenmem(char **bufp, size_t *sizep, const char *mode)
   char *buffer = NULL;
   size_t size = 0, written = 0;
   ssize_t w = -1;
+  int flags = SIO_FBUF|SIO_RECORDPOS|SIO_NOMUTEX|SIO_TEXT;
 
   fd = syscall(SYS_memfd_create, "", 0);
   if ( fd < 0 )
@@ -3776,8 +3777,7 @@ Sopenmem(char **bufp, size_t *sizep, const char *mode)
         written += w;
     }
   while (written < size);
-
-  return Sfdopen(fd, mode);
+  return Snew(&fd, flags, &Sfilefunctions);
 }
 #else /* ifndef HAVE_MEMFD_CREATE */
 { memfile *mf = malloc(sizeof(memfile));
