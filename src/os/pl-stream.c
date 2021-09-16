@@ -3777,7 +3777,7 @@ Sopenmem(char **bufp, size_t *sizep, const char *mode)
     }
   while (written < size);
 
-  return Sfdopen(fd, mode)
+  return Sfdopen(fd, mode);
 }
 #else /* ifndef HAVE_MEMFD_CREATE */
 { memfile *mf = malloc(sizeof(memfile));
