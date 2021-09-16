@@ -3777,6 +3777,26 @@ Sopenmem(char **bufp, size_t *sizep, const char *mode)
         written += w;
     }
   while (written < size);
+
+  for(; *mode; mode++)
+  { switch(*mode)
+    { case 'r':
+	flags |= SIO_INPUT;
+	break;
+      case 'w':
+	flags |= SIO_OUTPUT;
+	break;
+      case 'b':
+	flags &= ~SIO_TEXT;
+        break;
+      case 'F':
+        break;
+      default:
+	errno = EINVAL;
+	return NULL;
+    }
+  }
+
   return Snew(&fd, flags, &Sfilefunctions);
 }
 #else /* ifndef HAVE_MEMFD_CREATE */
