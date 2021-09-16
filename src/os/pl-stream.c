@@ -3757,12 +3757,12 @@ Sopenmem(char **bufp, size_t *sizep, const char *mode)
   if ( fd < 0 )
     return NULL;
 
+  buffer = *bufp;
+
   if ( sizep == NULL || *sizep == (size_t)-1 )
-    size = (*bufp ? strlen(mf->buffer) : 0);
+    size = (*bufp ? strlen(buffer) : 0);
   else
     size = *sizep;
-
-  buffer = *bufp;
 
   do
     { w = write(fd, buffer, size);
