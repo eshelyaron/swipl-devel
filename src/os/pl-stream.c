@@ -115,6 +115,11 @@ locking is required.
 #include SYSLIB_H
 #endif
 
+#include <sys/syscall.h>
+#ifdef SYS_memfd_create
+#define HAVE_MEMFD_CREATE
+#endif
+
 #define ROUND(p, n) ((((p) + (n) - 1) & ~((n) - 1)))
 #define UNDO_SIZE ROUND(PL_MB_LEN_MAX, sizeof(wchar_t))
 
@@ -3741,6 +3746,40 @@ and other output predicates to create strings.
 
 IOSTREAM *
 Sopenmem(char **bufp, size_t *sizep, const char *mode)
+#ifdef HAVE_MEMFD_CREATE
+{
+  int fd = -1;
+  char *buffer = NULL;
+  size_t size = 0, written = 0;
+  ssize_t w = -1;
+
+  fd = syscall(SYS_memfd_create, "", 0);
+  if ( fd < 0 )
+    return NULL;
+
+  if ( sizep == NULL || *sizep == (size_t)-1 )
+    size = (*bufp ? strlen(mf->buffer) : 0);
+  else
+    size = *sizep;
+
+  buffer = *bufp;
+
+  do
+    { w = write(fd, buffer, size);
+      if ( w < 0 )
+        { if ( !(errno == EINTR) )
+            { close(fd);
+              return NULL;
+            }
+        }
+      else
+        written += w;
+    }
+  while (written < size);
+
+  return Sfdopen(fd, mode)
+}
+#else /* ifndef HAVE_MEMFD_CREATE */
 { memfile *mf = malloc(sizeof(memfile));
   int flags = SIO_FBUF|SIO_RECORDPOS|SIO_NOMUTEX|SIO_TEXT;
   size_t size;
@@ -3795,6 +3834,7 @@ Sopenmem(char **bufp, size_t *sizep, const char *mode)
 
   return Snew(mf, flags, &Smemfunctions);
 }
+#endif /* HAVE_MEMFD_CREATE */
 
 		 /*******************************
 		 *	      STRINGS		*
